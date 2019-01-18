@@ -98,6 +98,9 @@ if next_source_index < len(project.sources):
     imm.integrate_sources_from_index(project, next_source_index, args.checkpoints_location, db_configs, options)
 
 imu.maybe_pg_terminate_backends(db_configs, options)
-imu.run(['./gradlew', 'postprocess', '--no-daemon', '--stacktrace'], options)
+
+next_postprocess_index = 0
+imm.postprocess_process_from_index(project, next_postprocess_index, args.checkpoints_location, db_configs, options)
+#imu.run(['./gradlew', 'postprocess', '--no-daemon', '--stacktrace'], options)
 
 logger.info('Finished. Now run "./gradlew tomcatStartWar"')

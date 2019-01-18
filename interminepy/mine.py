@@ -178,3 +178,9 @@ def integrate_source(source, db_config, checkpoint_location, options):
                  db_config['name']],
                 db_config,
                 options)
+
+def postprocess_process_from_index(project, index, checkpoints_location, db_configs, options):
+    process_names = list(project.postprocesses.keys())[index:]
+    for process_name in process_names:
+        imu.maybe_pg_terminate_backends(db_configs, options)
+        imu.run(['./gradlew', 'postprocess', '-Pprocess=%s' % process_name, '--stacktrace', '--no-daemon'], options)
