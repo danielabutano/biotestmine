@@ -15,18 +15,17 @@ sourceSets {
 }
 
 configurations {
-    onlyRunTime
+    webservices
 }
 
 dependencies {
     compile (project(":dbmodel")) {transitive = false}
     compile group: "org.intermine", name: "bio-core", version: System.getProperty("bioVersion"), transitive: false
-    compile group: "org.intermine", name: "bio-webcore", version: System.getProperty("imVersion"), transitive: false
-    compile group: "org.intermine", name: "intermine-api", version: System.getProperty("imVersion")
+    compile group: "org.intermine", name: "intermine-api", version: System.getProperty("imVersion")  
     compile group: "org.intermine", name: "intermine-webcore", version: System.getProperty("imVersion")
-    compile group: "org.intermine", name: "intermine-webapp", version: System.getProperty("imVersion"), classifier: "classes"
-    compile group: "org.intermine", name: "intermine-webtasks", version: System.getProperty("imVersion")
-    onlyRunTime group: 'org.intermine', name: 'bluegenes', version: System.getProperty("blueGenesVersion")
+    //compile group: "org.intermine", name: "intermine-webtasks", version: System.getProperty("imVersion") this will include webapp
+
+    webservices group: "org.intermine", name: "intermine-webservices", version: System.getProperty("imVersion"),  transitive: false
 }
 
 def explodedWebAppDir = "$buildDir/explodedWebApp"
@@ -41,22 +40,22 @@ webappConfig {
     propsDir = "$mergePropsDir"
 }
 
+task unwarWebServices(type: Copy) {
+    description "Unwar intermine-webservices under the build/explodedWebAppDir directory"
+    from { zipTree(configurations.webservices.singleFile) }
+    destinationDir = new File("$explodedWebAppDir")
+}
+
 war {
-    dependsOn 'mergeProperties', 'summariseObjectStore', 'unwarBioWebApp', 'addStrutsConfig'
+    dependsOn 'mergeProperties', 'summariseObjectStore', 'unwarWebServices'
     finalizedBy 'warWebApp'
 }
 
 task warWebApp(type: War) {
-    dependsOn 'copyWebappContent'
     description "Create the war from the build/explodedWebAppDir directory"
     from {"${explodedWebAppDir}"}
     exclude "WEB-INF/web.properties"
     webInf { from "${mergePropsDir}" }
-}
-
-task copyWebappContent(type: Copy) {
-    from "src/main/webapp/"
-    into "${explodedWebAppDir}"
 }
 
 // read in biotestmine.properties to get the contextPath
@@ -82,7 +81,7 @@ cargo {
 
     // change this to the Tomcat root of your choice
     deployable {
-        context = props.getProperty("webapp.path")
+        context = props.getProperty("webapp.path") + "-ws"
     }
 
     def remoteHostName = "localhost"
@@ -133,17 +132,4 @@ String getServerName(String deployUrl) {
     }
 
     return deployUrl
-}
-
-
-task blueGenesStart(type: JavaExec) {
-    classpath = configurations.onlyRunTime
-    main = "bluegenes.core"
-    //println "Loading blue genes for '" + props.getProperty("project.title") + "' at '" + props.getProperty("webapp.baseurl") + "/" + props.getProperty("webapp.path") + "'"
-
-    //:bluegenes-default-service-root "http://beta.flymine.org/beta"
-    environment("bluegenes-default-service-root", props.getProperty("webapp.baseurl") + "/" + props.getProperty("webapp.path"))
-    // FlyMine Beta
-    environment("bluegenes-default-mine-name", props.getProperty("project.title"))
-    environment("bluegenes-jar-version", System.getProperty("blueGenesVersion"))
 }
