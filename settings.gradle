@@ -1,7 +1,8 @@
 rootProject.name = 'biotestmine'
 
-include ':dbmodel',':webservices',':webapp'
+include ':dbmodel',':webservices',':webapp',':webservices-spring'
 
 project(':dbmodel').projectDir = new File(settingsDir, './dbmodel')
 project(':webservices').projectDir = new File(settingsDir, './webservices')
+project(':webservices-spring').projectDir = new File(settingsDir, './webservices-spring')
 project(':webapp').projectDir = new File(settingsDir, './webapp')

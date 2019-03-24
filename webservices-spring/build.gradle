@@ -15,17 +15,11 @@ sourceSets {
 }
 
 configurations {
-    webservices
+    wsspring
 }
 
 dependencies {
-    compile (project(":dbmodel")) {transitive = false}
-    compile group: "org.intermine", name: "bio-core", version: System.getProperty("bioVersion"), transitive: false
-    compile group: "org.intermine", name: "bio-webcore", version: System.getProperty("imVersion"), transitive: false //otherwise bio-model will be included in the classpath 
-    compile group: "org.intermine", name: "intermine-api", version: System.getProperty("imVersion")  
-    compile group: "org.intermine", name: "intermine-webcore", version: System.getProperty("imVersion")
-
-    webservices group: "org.intermine", name: "bio-webservices", version: System.getProperty("imVersion"),  transitive: false
+    wsspring group: "org.intermine", name: "intermine-webservices-spring", version: System.getProperty("imVersion"),  transitive: false
 }
 
 def explodedWebAppDir = "$buildDir/explodedWebApp"
@@ -40,14 +34,14 @@ webappConfig {
     propsDir = "$mergePropsDir"
 }
 
-task unwarWebServices(type: Copy) {
-    description "Unwar intermine-webservices under the build/explodedWebAppDir directory"
-    from { zipTree(configurations.webservices.singleFile) }
+task unwarWebServicesSpring(type: Copy) {
+    description "Unwar intermine-webservices-spring under the build/explodedWebAppDir directory"
+    from { zipTree(configurations.wsspring.singleFile) }
     destinationDir = new File("$explodedWebAppDir")
 }
 
 war {
-    dependsOn 'mergeProperties', 'summariseObjectStore', 'unwarWebServices', 'mergeWebFiles'
+    dependsOn 'mergeProperties', 'unwarWebServicesSpring'
     finalizedBy 'warWebApp'
 }
 
@@ -78,12 +72,10 @@ cargo {
     if (props.getProperty("webapp.port") != null) {
         remotePort = props.getProperty("webapp.port").toInteger()
     }
+
     // change this to the Tomcat root of your choice
     deployable {
-        //Tomcat supports nested context paths.
-        //e.g. biotestmine#service.war will be made available under the biotestmine/service context
-        //if we put the hash character the TomcatManager fails, so for now leave the slash
-        context = props.getProperty("webapp.path") + "/service"
+        context = props.getProperty("webapp.path") + '-ws-spring'
     }
 
     def remoteHostName = "localhost"
