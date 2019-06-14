@@ -83,7 +83,7 @@ cargo {
         //Tomcat supports nested context paths.
         //e.g. biotestmine#service.war will be made available under the biotestmine/service context
         //if we put the hash character the TomcatManager fails, so for now leave the slash
-        context = props.getProperty("webapp.path") + "-ws-spring"
+        context = props.getProperty("webapp.path") + "/service"
     }
 
     def remoteHostName = "localhost"
